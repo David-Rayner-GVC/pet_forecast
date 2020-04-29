@@ -44,7 +44,7 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None):
   netcdf_dir - director to look for netcdf files. Should be pre-processed (de-averaged). default is config.target_root/nc4classic
   lat, lon - coords for time-series, lon is 0-360
   
-  Returns some xarray object stuff
+  Returns some xarray  stuff
   
   The files to use are specified in config.py as PET_vars
   """
@@ -73,7 +73,6 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None):
   xd = xr.merge(xList)
   xd['air_temperature'].data = xd['air_temperature'].data-273.15
   xd['air_temperature'].attrs['units']='C'   
-  xd['time'].values = [x.replace('.000000000','')  for x in xd['time'].values.astype(str)]
   xd['time'].attrs['time_zone']='UTC'
   
   return xd
@@ -86,7 +85,10 @@ def WritePETForecastJSON(xd, json_file):
   xd - xarray from ExtractPETForecastData
   json_file  - output file. 
   """
-  saved_dict = xd.to_dict()
+  xds = xd.copy()
+  xds['time'].values = [x.replace('.000000000','')  for x in xds['time'].values.astype(str)]
+
+  saved_dict = xds.to_dict()
   
   for key, value in saved_dict['data_vars'].items():
     saved_dict['data_vars'][key]['data'] = ['null' if np.isnan(x) else round(x,2) for x in value['data'] ]
