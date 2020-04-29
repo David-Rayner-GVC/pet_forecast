@@ -169,6 +169,8 @@ def Cleanout(target_root=None):
     for filePath in fileList:
       if os.path.isdir(filePath):
         shutil.rmtree(filePath)
+      else:
+        os.remove(filePath)
 
       
 def DeAccumulate(input,output):
