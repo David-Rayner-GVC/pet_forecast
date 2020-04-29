@@ -48,7 +48,9 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None):
   
   The files to use are specified in config.py as PET_vars
   """
- 
+  lon = np.float64(lon)
+  lat = np.float64(lat)
+  
   if netcdf_dir==None:
     netcdf_dir = os.path.join(config.target_root,'nc4classic')
     
