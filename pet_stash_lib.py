@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Merging a forecast to a local stash 
+Merging a forecast to a local stash  
 """
 
 import config
