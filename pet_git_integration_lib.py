@@ -101,7 +101,7 @@ def UpdateLocalForecast(ID=None, name=None, stash=False):
   ID is currently string name of forecast
   
   """
-  import icon_extract_lib
+  import pet_extraction_lib as pel
   
   st = Stations()
   
@@ -112,9 +112,9 @@ def UpdateLocalForecast(ID=None, name=None, stash=False):
     df=st.Name(name)
 
   for index, d in df.iterrows():
-    xd=icon_extract_lib.ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'])
+    xd=pel.ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'])
     json_file=os.path.join(config.git_local_root, 'json', d['Name'] + '.json')
-    icon_extract_lib.WritePETForecastJSON(xd, json_file)
+    pel.WritePETForecastJSON(xd, json_file)
     if stash:
       # stash here
       pass
