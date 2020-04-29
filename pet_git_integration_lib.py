@@ -97,7 +97,7 @@ def RetrieveForecast(ID, asXarray=True, asDatetime64=True):
 def UpdateLocalForecast(ID=None, name=None, stash=False):
   """
   Extract data, write to JSON
-  File locations are controlled in config.py
+  File locations are controlled in config.py 
   ID is currently string name of forecast
   
   """
