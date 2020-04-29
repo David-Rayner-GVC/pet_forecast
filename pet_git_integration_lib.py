@@ -94,7 +94,7 @@ def RetrieveForecast(ID, asXarray=True, asDatetime64=True):
   return(data)
 
 
-def UpdateLocalForecast(ID=None, name=None):
+def UpdateLocalForecast(ID=None, name=None, stash=False):
   """
   Extract data, write to JSON
   File locations are controlled in config.py
@@ -115,6 +115,9 @@ def UpdateLocalForecast(ID=None, name=None):
     xd=icon_extract_lib.ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'])
     json_file=os.path.join(config.git_local_root, 'json', d['Name'] + '.json')
     icon_extract_lib.WritePETForecastJSON(xd, json_file)
+    if stash:
+      # stash here
+      pass
 
 def UpdatePublisehedForecasts():
   """
