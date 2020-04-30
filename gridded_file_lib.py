@@ -17,7 +17,7 @@ import datetime
 from cdo import Cdo
 
 import config
-from icon_generic_lib import *
+from generic_lib import *
 import icon_url_lib
 
 try:
