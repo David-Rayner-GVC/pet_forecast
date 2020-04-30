@@ -17,7 +17,7 @@ import datetime
 import wget
 
 import config
-import icon_generic_lib
+from generic_lib import *
 
 class icon_url_lib:
   def __init__(self, url_root=None ):
@@ -50,7 +50,7 @@ class icon_url_lib:
       cvar string. is not case-sensitive
     """
     file_list=self.GetFileNames(hh,cvar.lower())
-    icon_generic_lib.CheckDirExists(grib_dir)
+    CheckDirExists(grib_dir)
     
     for f in file_list:
       u = urljoin(self.url_root , hh + '/' + cvar.lower() + '/' + f)
