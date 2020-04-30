@@ -17,7 +17,7 @@ import datetime
 import wget
 
 import config
-import icon_generic_lib
+import generic_lib
 
 class icon_url_lib:
   def __init__(self, url_root=None ):
