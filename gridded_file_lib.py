@@ -26,7 +26,7 @@ except ImportError:
     DEVNULL = open(os.devnull, 'wb')
 
 
-def ConvertGrib(source_file, target_dir):
+def _ConvertGrib(source_file, target_dir):
   """
   Unzip/convert a single file
   
@@ -69,7 +69,7 @@ def ConvertGrib(source_file, target_dir):
       raise ValueError('Unable to create target file %s, return status' % p)
   return(full_nc_source)
 
-def ConvertVar(source_dir, target_dir):
+def _ConvertVar(source_dir, target_dir):
   """
   Unzip/convert all files in a directory
   source_dir - path to dir containing .bz2 equiv file
@@ -78,12 +78,12 @@ def ConvertVar(source_dir, target_dir):
   if config.debug:
     print(source_dir + ' -> ' + target_dir)
   D = os.listdir(source_dir)
-  CG = lambda x : ConvertGrib(os.path.join(source_dir,x) , target_dir)
+  CG = lambda x : _ConvertGrib(os.path.join(source_dir,x) , target_dir)
 
   ND = list(map(CG,D)) 
   return(ND)
   
-def ConcatenateNetcdf(source_dir, target_dir):
+def _ConcatenateNetcdf(source_dir, target_dir):
   """
   concatenate all netcdf files in a directory!
   output is written to target_dir
@@ -114,7 +114,11 @@ def ConcatenateNetcdf(source_dir, target_dir):
   
 def DownloadPETForecastData( hh, target_root=None, vars=None, url_root=None, overwrite=False):
   """
+  Step two of the processing chain!
+  
   Download set of files for a forecast.
+  Convert from grib to netcdf.
+  
   Inputs.
     hh - eg '03'
     target_root. default from config.py eg '/mnt/c/Users/xrayda/LOCALDATA/PET__forecast/icon-eu/
@@ -126,8 +130,7 @@ Outputs
   This function:
    - downloads the files to $target_root/grib
    - converts them to netcdf to $garget_root/netcdf
-   - concatenates the netcdf files to $target_root/netcdf_concat
-  It does NOT post-process (eg deaverage)
+  It does concatenate or deaverage
   """
   
   ii = icon_url_lib.icon_url_lib(url_root)
@@ -137,8 +140,6 @@ Outputs
     
   if vars==None:
       vars = config.PET_vars
-
-  concatFiles=dict()
       
   for v in vars:
     grib_dir =  os.path.join(target_root,'grib',v )
@@ -146,9 +147,24 @@ Outputs
     if len(os.listdir(grib_dir))==0  or overwrite:
       ii.DownloadCvarFiles(hh,v,grib_dir)
     nc_dir = os.path.join(target_root,'netcdf',v)
-    ConvertVar(grib_dir, nc_dir)
+    _ConvertVar(grib_dir, nc_dir)
+
+  
+def Concatenate():
+  """
+  Concatenate step in the processing:
+  netcdf -> netcdf_concat
+  """
+  
+  target_root = config.target_root
+  vars = config.PET_vars
+  
+  concatFiles=dict()
+      
+  for v in vars:
+    nc_dir = os.path.join(target_root,'netcdf',v)
     nccat_dir = os.path.join(target_root,'netcdf_concat')
-    concatFiles[v] = ConcatenateNetcdf(nc_dir, nccat_dir)
+    concatFiles[v] = _ConcatenateNetcdf(nc_dir, nccat_dir)
   return(concatFiles)
   
 def Cleanout(target_root=None):
@@ -162,7 +178,7 @@ def Cleanout(target_root=None):
   if config.debug:
       print('Cleaout %s' % target_root)
 	  
-  targets = ('grib', 'netcdf', 'netcdf_concat','nc4classic','deaverage')
+  targets = ('grib', 'netcdf', 'netcdf_concat','netcdf_final','deaverage')
       
   for t in targets:
     fileList = glob.glob(os.path.join(target_root,t,'*'), recursive=False)
@@ -173,7 +189,7 @@ def Cleanout(target_root=None):
         os.remove(filePath)
 
       
-def DeAccumulate(input,output):
+def _DeAccumulate(input,output):
   """
   de-aggregate a file - ie calculate time-step differences
   """
@@ -188,7 +204,7 @@ def DeAccumulate(input,output):
   cdx.sub(input='-seltimestep,2/%i %s -seltimestep,1/%s %s' % inputs, output=output)
   
           
-def DeAverage(input, output, cvar, new_long_name, tmp_dir):
+def _DeAverage(input, output, cvar, new_long_name, tmp_dir):
   """
   Some forecasts are given as average over the forecast time. 
   Needless to say, this is completely useless for any real-world application.
@@ -218,7 +234,7 @@ def DeAverage(input, output, cvar, new_long_name, tmp_dir):
    sumfile=os.path.join(tmp_dir,'sumfile.nc')
    difffile=os.path.join(tmp_dir,'difffile.nc')
    cdx.expr('\'%s= %s * (ctimestep()-1);\'' % (cvar, cvar), input=input, output=sumfile)
-   DeAccumulate(sumfile,difffile)
+   _DeAccumulate(sumfile,difffile)
    cdx.setattribute('%s@long_name=\'%s\'' % (cvar,new_long_name), input=difffile, output=output)
    
 #   ntime = int(cdx.ntime(input=input)[0])
@@ -260,45 +276,59 @@ def IndexLocalForecastData(target_root=None):
     concatFiles[cvar] = filePath
   return(concatFiles)
     
-def PostProcessForecastData(concatFiles,tmp_dir=None):
+def PostProcessForecastData(tmp_dir=None):
   """
+  Perform post-processing steps:
   create deaverage files for aswdir_s and aswdifd_s
   """
   if tmp_dir==None:
     tmp_dir = config.tmp_dir
   
-  files2copy = concatFiles.copy()
+  target_root = config.target_root
   
-  input = concatFiles['ASWDIR_S']
-  target_dir= os.path.dirname(os.path.dirname(input))
+  CheckDirExists(os.path.join(target_root,'deaverage'))
+  CheckDirExists(os.path.join(target_root,'netcdf_final'))
   
-  CheckDirExists(os.path.join(target_dir,'deaverage'))
-  
-  input = concatFiles['ASWDIR_S']
-  fpath, filename = os.path.split(input)
-  files2copy['ASWDIR_S'] = os.path.join(target_dir,'deaverage', filename)
   cvar = 'ASWDIR_S'
-  new_long_name= "Downward direct short wave radiation flux at surface (mean over hour time time-stamp)"
-  DeAverage(input, files2copy['ASWDIR_S'], cvar, new_long_name, tmp_dir)
-  
-
-  input = concatFiles['ASWDIFD_S']
+  input = glob.glob(os.path.join(target_root,'netcdf_concat','*'+cvar+'*'), recursive=False)[0]
   fpath, filename = os.path.split(input)
-  files2copy['ASWDIFD_S'] = os.path.join(target_dir,'deaverage', filename)
+  output = os.path.join(target_root,'deaverage',filename)
+  new_long_name= "Downward direct short wave radiation flux at surface (mean over hour time time-stamp)"
+  _DeAverage(input, output, cvar, new_long_name, tmp_dir)
+  # and a symlink for netcdf_final
+  lnk = os.path.join(target_root,'netcdf_final',filename)
+  RemoveFile(lnk)
+  os.symlink(output, lnk) 
+  
   cvar = 'ASWDIFD_S'
+  input = glob.glob(os.path.join(target_root,'netcdf_concat','*'+cvar+'*'), recursive=False)[0]
+  fpath, filename = os.path.split(input)
+  output = os.path.join(target_root,'deaverage',filename)
   new_long_name= "Downward diffusive short wave radiation flux at surface (mean over hour time time-stamp)"
-  DeAverage(input, files2copy['ASWDIFD_S'], cvar, new_long_name, tmp_dir)
+  _DeAverage(input, output, cvar, new_long_name, tmp_dir)
+  # and a symlink for netcdf_final
+  lnk = os.path.join(target_root,'netcdf_final',filename)
+  RemoveFile(lnk)
+  os.symlink(output, lnk) 
   
-  # now move to nc4classic
-  CheckDirExists(os.path.join(target_dir,'nc4classic'))
-  
-  for key, value in files2copy.items():
-    fpath, filename = os.path.split(value)
-    output = os.path.join(target_dir, 'nc4classic', filename)
-    el = 'nccopy -k nc7 -d 1 %s %s' % (value, output)
-    if config.debug:
-      print(el)
-      p = subprocess.call(el, shell=True) #, stderr=DEVNULL)
+  vars2 = list(config.PET_vars)
+  vars2.remove('ASWDIFD_S')
+  vars2.remove('ASWDIR_S')
+      
+  for cvar in vars2:
+    input = glob.glob(os.path.join(target_root,'netcdf_concat','*'+cvar+'*'), recursive=False)[0]
+    fpath, filename = os.path.split(input)
+    lnk = os.path.join(target_root,'netcdf_final',filename)
+    RemoveFile(lnk)
+    os.symlink(output, lnk) 
+    
+
+  # for key, value in files2copy.items():
+    # fpath, filename = os.path.split(value)
+    # output = os.path.join(target_dir, 'nc4classic', filename)
+  # # now move to nc4classic
+  # CheckDirExists(os.path.join(target_dir,'nc4classic'))
+
 
           
 if __name__ == "__main__":
@@ -310,8 +340,8 @@ if __name__ == "__main__":
   
   Cleanout()
   DownloadPETForecastData(hh)
-  concatFiles = IndexLocalForecastData()
-  PostProcessForecastData(concatFiles)
+  Concatenate()
+  PostProcessForecastData()
   
 
   
