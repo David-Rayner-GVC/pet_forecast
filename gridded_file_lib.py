@@ -320,7 +320,7 @@ def PostProcessForecastData(tmp_dir=None):
     fpath, filename = os.path.split(input)
     lnk = os.path.join(target_root,'netcdf_final',filename)
     RemoveFile(lnk)
-    os.symlink(output, lnk) 
+    os.symlink(input, lnk) 
     
 
   # for key, value in files2copy.items():
