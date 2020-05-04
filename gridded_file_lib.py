@@ -18,7 +18,7 @@ from cdo import Cdo
 
 import config
 from generic_lib import *
-import icon_url_lib
+import icon_url_lib as iu
 
 try:
     from subprocess import DEVNULL # py3k
@@ -133,7 +133,7 @@ Outputs
   It does concatenate or deaverage
   """
   
-  ii = icon_url_lib.icon_url_lib(url_root)
+  ii = iu.icon_url_lib(url_root)
   
   if target_root==None:
     target_root = config.target_root
@@ -333,7 +333,7 @@ def PostProcessForecastData(tmp_dir=None):
           
 if __name__ == "__main__":
   # to run as a script
-  ii = icon_url_lib.icon_url_lib()
+  ii = iu.icon_url_lib()
   
   hh = ii.GetTimeOfMostRecent()
   #hh = '15'

@@ -9,11 +9,11 @@ NO PET is calculated, yet! Just the met data!
 
 # Workflow 1 - assemble grids on local host
 
-import icon_url_lib
+import icon_url_lib as iu
 import gridded_file_lib as gf
 
 # download the latest forecast grids
-ii = icon_url_lib.icon_url_lib()
+ii = iu.icon_url_lib()
   
 hh = ii.GetTimeOfMostRecent()
   
@@ -21,8 +21,8 @@ gf.Cleanout()
 gf.DownloadPETForecastData(hh)
 
 # perform preprocessing on the grids
-concatFiles = gf.IndexLocalForecastData()
-gf.PostProcessForecastData(concatFiles)
+gf.Concatenate()
+gf.PostProcessForecastData()
 
 # Workflow 2 - extract time-series & udpate the distributed copies on GIT
 import pet_git_integration_lib as pgi
