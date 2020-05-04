@@ -50,7 +50,7 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None):
   """
  
   if netcdf_dir==None:
-    netcdf_dir = os.path.join(config.target_root,'nc4classic')
+    netcdf_dir = os.path.join(config.target_root,'netcdf_final')
     
   xList=list()
   fileList = glob.glob(os.path.join(netcdf_dir,'*'), recursive=False)
