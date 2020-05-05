@@ -16,6 +16,8 @@ import gridded_file_lib as gf
 ii = iu.icon_url_lib()
   
 hh = ii.GetTimeOfMostRecent()
+if config.debug:
+  print('Latest forecast is hour '+hh)
   
 gf.Cleanout()
 gf.DownloadPETForecastData(hh)
