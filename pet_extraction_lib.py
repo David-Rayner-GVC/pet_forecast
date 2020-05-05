@@ -72,8 +72,6 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None):
   xd = xr.merge(xList)
   xd['air_temperature'].data = xd['air_temperature'].data-273.15
   xd['air_temperature'].attrs['units']='C'  
-  xd.assign_coords(time=[x.replace('.000000000','')  for x in xd['time'].values.astype(str)])  
-  #xd['time'].values = [x.replace('.000000000','')  for x in xd['time'].values.astype(str)]
   xd['time'].attrs['time_zone']='UTC'
   
   return xd
@@ -86,8 +84,14 @@ def WritePETForecastJSON(xd, json_file):
   xd - xarray from ExtractPETForecastData
   json_file  - output file. 
   """
+  # convert time to str, as datetime is not serlializable as json
+  #xd.assign_coords(time=[x.replace('.000000000','')  for x in xd['time'].values.astype(str)])  
+  #xd['time'].values = [x.replace('.000000000','')  for x in xd['time'].values.astype(str)]
+
   saved_dict = xd.to_dict()
   
+  saved_dict['coords']['time']['data'] = [x.replace('.000000000','')  for x in xd['time'].values.astype(str)]
+
   for key, value in saved_dict['data_vars'].items():
     saved_dict['data_vars'][key]['data'] = ['null' if np.isnan(x) else round(x,2) for x in value['data'] ]
 
