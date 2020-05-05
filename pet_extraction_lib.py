@@ -23,10 +23,11 @@ def ExtractTimeSeries(filename, cvar, lat, lon):
   Specify lon as 0-360
   """
   ds = xr.open_dataset(filename)
-  # icon uses 0lon at 360!
+  # icon uses 0lon at 360? sometimes? 
+  # whatever, sometimes the netcdf files are centered on 0.
   xlon = lon
-  if lon <336.5:
-   xlon = lon + 360 
+  if float(ds.lon[0])>0 and lon<float(ds.lon[0]):
+    xlon = lon + 360 
   xd = ds[cvar].sel(lat=lat, lon=xlon, method='nearest')
   if xd.coords['lon'] > 360:
     xd.coords['lon'] = xd.coords['lon']-360
