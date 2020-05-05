@@ -71,8 +71,9 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None):
     
   xd = xr.merge(xList)
   xd['air_temperature'].data = xd['air_temperature'].data-273.15
-  xd['air_temperature'].attrs['units']='C'   
-  xd['time'].values = [x.replace('.000000000','')  for x in xd['time'].values.astype(str)]
+  xd['air_temperature'].attrs['units']='C'  
+  xd.assign_coords(time=[x.replace('.000000000','')  for x in xd['time'].values.astype(str)])  
+  #xd['time'].values = [x.replace('.000000000','')  for x in xd['time'].values.astype(str)]
   xd['time'].attrs['time_zone']='UTC'
   
   return xd
