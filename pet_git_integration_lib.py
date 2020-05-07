@@ -114,6 +114,8 @@ def UpdateLocalForecast(ID=None, name=None, stash=False):
   for index, d in df.iterrows():
     xd=pel.ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'])
     json_file=os.path.join(config.git_local_root, 'json', d['Name'] + '.json')
+    if config.debug:
+      print('updating '+json_file)
     pel.WritePETForecastJSON(xd, json_file)
     if stash:
       # stash here
@@ -131,7 +133,9 @@ def UpdatePublisehedForecasts():
   currentDT = datetime.datetime.now()
   timeStr = currentDT.strftime("%Y-%m-%d %H:%M:%S")
   r.git.add(update=True)
+  if config.debug:
+    print("Updating forecasts on git: " + timeStr)
   r.index.commit("Forecast updated: " + timeStr)
-  r.remote('origin').push()
+  r.remote('origin').push(force=True)
   
 

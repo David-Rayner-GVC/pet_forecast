@@ -20,3 +20,10 @@ def CheckDirExists(dir_name):
     if config.debug:
       print('Creating dir %s' % dir_name)
     os.makedirs(dir_name)
+    
+def RemoveFile(fname):
+   """
+   remove a file, no questions
+   """
+   if os.path.exists(fname):
+     os.remove(fname)
