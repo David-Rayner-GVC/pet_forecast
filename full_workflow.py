@@ -11,6 +11,7 @@ NO PET is calculated, yet! Just the met data!
 
 import icon_url_lib as iu
 import gridded_file_lib as gf
+import config
 
 # download the latest forecast grids
 ii = iu.icon_url_lib()

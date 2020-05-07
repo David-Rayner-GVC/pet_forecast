@@ -133,6 +133,8 @@ def UpdatePublisehedForecasts():
   currentDT = datetime.datetime.now()
   timeStr = currentDT.strftime("%Y-%m-%d %H:%M:%S")
   r.git.add(update=True)
+  if config.debug:
+    print("Updating forecasts on git: " + timeStr)
   r.index.commit("Forecast updated: " + timeStr)
   r.remote('origin').push(force=True)
   
