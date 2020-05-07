@@ -23,10 +23,11 @@ def ExtractTimeSeries(filename, cvar, lat, lon):
   Specify lon as 0-360
   """
   ds = xr.open_dataset(filename)
-  # icon uses 0lon at 360!
+  # icon uses 0lon at 360? sometimes? 
+  # whatever, sometimes the netcdf files are centered on 0.
   xlon = lon
-  if lon <336.5:
-   xlon = lon + 360 
+  if float(ds.lon[0])>0 and lon<float(ds.lon[0]):
+    xlon = lon + 360 
   xd = ds[cvar].sel(lat=lat, lon=xlon, method='nearest')
   if xd.coords['lon'] > 360:
     xd.coords['lon'] = xd.coords['lon']-360
@@ -44,15 +45,13 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None):
   netcdf_dir - director to look for netcdf files. Should be pre-processed (de-averaged). default is config.target_root/nc4classic
   lat, lon - coords for time-series, lon is 0-360
   
-  Returns some xarray  stuff
+  Returns some xarray object stuff
   
   The files to use are specified in config.py as PET_vars
   """
-  lon = np.float64(lon)
-  lat = np.float64(lat)
-  
+ 
   if netcdf_dir==None:
-    netcdf_dir = os.path.join(config.target_root,'nc4classic')
+    netcdf_dir = os.path.join(config.target_root,'netcdf_final')
     
   xList=list()
   fileList = glob.glob(os.path.join(netcdf_dir,'*'), recursive=False)
@@ -72,7 +71,7 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None):
     
   xd = xr.merge(xList)
   xd['air_temperature'].data = xd['air_temperature'].data-273.15
-  xd['air_temperature'].attrs['units']='C'   
+  xd['air_temperature'].attrs['units']='C'  
   xd['time'].attrs['time_zone']='UTC'
   
   return xd
@@ -85,11 +84,14 @@ def WritePETForecastJSON(xd, json_file):
   xd - xarray from ExtractPETForecastData
   json_file  - output file. 
   """
-  xds = xd.copy()
-  xds['time'].values = [x.replace('.000000000','')  for x in xds['time'].values.astype(str)]
+  # convert time to str, as datetime is not serlializable as json
+  #xd.assign_coords(time=[x.replace('.000000000','')  for x in xd['time'].values.astype(str)])  
+  #xd['time'].values = [x.replace('.000000000','')  for x in xd['time'].values.astype(str)]
 
-  saved_dict = xds.to_dict()
+  saved_dict = xd.to_dict()
   
+  saved_dict['coords']['time']['data'] = [x.replace('.000000000','')  for x in xd['time'].values.astype(str)]
+
   for key, value in saved_dict['data_vars'].items():
     saved_dict['data_vars'][key]['data'] = ['null' if np.isnan(x) else round(x,2) for x in value['data'] ]
 
