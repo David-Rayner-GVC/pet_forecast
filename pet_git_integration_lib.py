@@ -102,6 +102,7 @@ def UpdateLocalForecast(ID=None, name=None, stash=False):
   
   """
   import pet_extraction_lib as pel
+  import pet_stash_lib as ps
   
   st = Stations()
   
@@ -113,13 +114,16 @@ def UpdateLocalForecast(ID=None, name=None, stash=False):
 
   for index, d in df.iterrows():
     xd=pel.ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'])
+    xd=xd.assign_coords(Name=d['Name']) 
+    xd=xd.assign_coords(Id=d['Id']) 
+
     json_file=os.path.join(config.git_local_root, 'json', d['Name'] + '.json')
     if config.debug:
       print('updating '+json_file)
     pel.WritePETForecastJSON(xd, json_file)
     if stash:
       # stash here
-      pass
+      ps.StashSingleForecast(xd)
 
 def UpdatePublisehedForecasts():
   """
