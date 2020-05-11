@@ -43,7 +43,7 @@ def StashSingleForecast(xd,filename=None,overwrite=False):
   else:
     xList=list()    
     with xr.open_dataset(filename) as old_st:
-      if st.time.data.max() > old_st.time.data.max():
+      if (st.time.data.max() - old_st.time.data.max())> np.timedelta64(1,'h'):
         if config.debug:
           print('Appending to stash file: '+filename)
         xList.append(old_st)

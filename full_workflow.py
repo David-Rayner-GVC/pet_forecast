@@ -33,6 +33,8 @@ import pet_git_integration_lib as pgi
 pgi.UpdateLocalForecast(stash=True)
 pgi.UpdatePublisehedForecasts()
 
+if config.debug:
+  print('Update complete')
 
 
 
