@@ -12,6 +12,8 @@ The script full_workflow:
  - extract (and publish to GIT) forecast-time-series for a particular locations, based on pet_json
  - stash the forecasts in local netcdf files, one per location, for future analysis.
  
+If you just want to retrieve a file from pet_json, use pet_git_integration_lib.RetrieveForecast. You'll need gitpython, but you don't need any authentication. 
+ 
  To-Do
   - Currently PET is NOT computed! that is, the client would have to do that themselves. We'll get around to that eventually...
   - No checks whether local grid files are up-to-date, they are just downloaded. This can break things if a new forecast is being written (see below)
