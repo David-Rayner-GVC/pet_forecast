@@ -39,11 +39,12 @@ class Stations:
     return rw    
 
 
-def GetContent(url, urlIsFull=True, asJSON=False):
+def GetContent(url, urlIsFull=True, asJSON=False, asString=False):
   """
   Internal function . Just get the content of a git url.
   If urlIsFull=False, append url to config.git_url_root
   If asJSON, assume content is JSON and convert it to a dict
+  If asString, decode to UTF-8
   """
   if not(urlIsFull):
     url=config.git_url_root + url
@@ -59,21 +60,39 @@ def GetContent(url, urlIsFull=True, asJSON=False):
 
   if asJSON:
     content = json.loads(content)  
+    
+  if asString:
+    content = content.decode("utf-8")
   
   return content
 
-def RetrieveForecast(ID, asXarray=True, asDatetime64=True):
+def RetrieveForecast(Name=None, ID=None, asXarray=True, asDatetime64=True):
   """
   Retrieve a forecast from GitHub.
   
-  ID - the name of the station that you want (no .json suffix)
+  ID - the numeric ID of the station that you want
+  Name - the Name of the station that you want (no .json suffix)
   
   asXarray - return xarray, rather than a dictionary
   asDatetime64 - convert dates from string to asDatetime64
  
   """
+  if (Name==None) and not(ID==None):
+    # get the Name using the station list on git pet_json
+    from io import StringIO
+    import csv
+    
+    url = config.git_url_root + 'locations_config.csv'
+    st = GetContent(url, asString=True)
+    
+    f = StringIO(st)
+    reader = csv.reader(f, delimiter=',')
+    for row in reader:
+      if str(row[0])==ID:
+        Name=row[1]
+        break
   
-  url = config.git_url_root + 'json/' + ID + '.json'
+  url = config.git_url_root + 'json/' + Name + '.json'
   
   data = GetContent(url, asJSON=True)
   for key, value in data['data_vars'].items():
