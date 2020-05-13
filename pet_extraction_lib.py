@@ -60,6 +60,10 @@ def CalculatePET(xd):
   xd['UTCI'] = (('time'), np.float32(poi_save[:, 33]) )
   xd.UTCI.data[0]=np.nan
   xd.UTCI.attrs = {"standard_name":"UTCI", "long_name":"Universal Thermal Climate Index", "units":"C"} 
+  
+  xd['Tmrt'] = (('time'), np.float32(poi_save[:, 26]) )
+  xd.Tmrt.data[0]=np.nan
+  xd.Tmrt.attrs = {"standard_name":"Tmrt", "long_name":"Mean Radiant Temperature", "units":"C"} 
 
   return xd
 
