@@ -113,7 +113,7 @@ def RetrieveForecast(Name=None, ID=None, asXarray=True, asDatetime64=True):
   return(data)
 
 
-def UpdateLocalForecast(ID=None, name=None, stash=False):
+def UpdateLocalForecast(ID=None, name=None, stash=False, withPET=True):
   """
   Extract data, write to JSON
   File locations are controlled in config.py 
@@ -132,7 +132,7 @@ def UpdateLocalForecast(ID=None, name=None, stash=False):
     df=st.Name(name)
 
   for index, d in df.iterrows():
-    xd=pel.ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'])
+    xd=pel.ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'],withPET=withPET)
     xd=xd.assign_coords(Name=d['Name']) 
     xd=xd.assign_coords(Id=d['Id']) 
 
