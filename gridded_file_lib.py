@@ -298,7 +298,8 @@ def PostProcessForecastData(tmp_dir=None):
   # and a symlink for netcdf_final
   lnk = os.path.join(target_root,'netcdf_final',filename)
   RemoveFile(lnk)
-  os.symlink(output, lnk) 
+  src = os.path.join('..','deaverage',filename)
+  os.symlink(src, lnk) 
   
   cvar = 'ASWDIFD_S'
   input = glob.glob(os.path.join(target_root,'netcdf_concat','*'+cvar+'*'), recursive=False)[0]
@@ -309,7 +310,9 @@ def PostProcessForecastData(tmp_dir=None):
   # and a symlink for netcdf_final
   lnk = os.path.join(target_root,'netcdf_final',filename)
   RemoveFile(lnk)
-  os.symlink(output, lnk) 
+  src = os.path.join('..','deaverage',filename)
+  os.symlink(src, lnk) 
+  
   
   vars2 = list(config.PET_vars)
   vars2.remove('ASWDIFD_S')
@@ -320,7 +323,9 @@ def PostProcessForecastData(tmp_dir=None):
     fpath, filename = os.path.split(input)
     lnk = os.path.join(target_root,'netcdf_final',filename)
     RemoveFile(lnk)
-    os.symlink(input, lnk) 
+    src = os.path.join('..','netcdf_concat',filename)
+    os.symlink(src, lnk) 
+
     
 
   # for key, value in files2copy.items():

@@ -88,7 +88,7 @@ def ExtractTimeSeries(filename, cvar, lat, lon):
     pass
   return xd
 
-def ExtractPETForecastData(lat, lon, netcdf_dir=None):
+def ExtractPETForecastData(lat, lon, netcdf_dir=None, withPET=True):
   """
   Extract time-series from standard netcdf files.
   
@@ -124,7 +124,8 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None):
   xd['time'].attrs['time_zone']='UTC'
   
   # now add PET and UTCI
-  CalculatePET(xd)
+  if withPET:
+    CalculatePET(xd)
   
   return xd
   
