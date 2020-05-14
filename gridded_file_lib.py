@@ -15,6 +15,8 @@ import re
 import subprocess
 import datetime
 from cdo import Cdo
+import xarray as xr
+import numpy as np
 
 import config
 from generic_lib import *
@@ -204,59 +206,40 @@ def _DeAccumulate(input,output):
   cdx.sub(input='-seltimestep,2/%i %s -seltimestep,1/%s %s' % inputs, output=output)
   
           
-def _DeAverage(input, output, cvar, new_long_name, tmp_dir):
+def _DeAverage(input, output, cvar, new_long_name, tmp_dir=None):
   """
   Some forecasts are given as average over the forecast time. 
   Needless to say, this is completely useless for any real-world application.
   This function de-averages the files.
   
   For such averaged files, the values for the first time-step is always zero.
-  Thus, in the deaveraged files, the first time-step is one hour after the 
-  first time-step in the input files, and the value is the average over the
+  The value of the second time-step is the average over the
   hour up to the time-stamp.
   
-  input - input netcdf filename, multi-hour file.
-  output - output netcdf file name. 
+  input - input netcdf filename, multi-hour file, with average-to-timestep data.
+  output - output netcdf file name. hourly average in each time-step.
   cvar - name of the variable to de-average. Ok, I am lazy, I could have found 
          this by inspection...
   new_long_name - the string written to the variable long_name attribute.
-  tmp_dir - director to write tmp files. Will be created in the function and
-            deleted on completion (unless there is an error and debug=True), 
-            so dont give '/tmp' or similar... 
+  tmp_dir - NOT USED ANYMORE. 
   """ 
-  cdx = Cdo()
   
-  CheckDirExists(tmp_dir)
+  with xr.open_dataset(input) as xd:
+    xn =   xd.copy()
+    
+    offset_hours = np.int32((xd.time - xd.time[0])*1e-9/3600)
+    diff_hours = np.diff(offset_hours) 
+    
+    #(xd[cvar].data[i] - xd[cvar].data[i-1])*offset_hours[i-1] +xd[cvar].data[i]*diff_hours[i]
+    for i in range(1,len(offset_hours)):
+      xn[cvar].data[i] = (xd[cvar].data[i]*offset_hours[i] - xd[cvar].data[i-1]*offset_hours[i-1])/diff_hours[i-1]
   
-  success=False
-  try:
-   
-   sumfile=os.path.join(tmp_dir,'sumfile.nc')
-   difffile=os.path.join(tmp_dir,'difffile.nc')
-   cdx.expr('\'%s= %s * (ctimestep()-1);\'' % (cvar, cvar), input=input, output=sumfile)
-   _DeAccumulate(sumfile,difffile)
-   cdx.setattribute('%s@long_name=\'%s\'' % (cvar,new_long_name), input=difffile, output=output)
-   
-#   ntime = int(cdx.ntime(input=input)[0])
-#   op1 = '-seltimestep,1/%i/1 %s' % (ntime-1, input)
-#   op2 = '-shifttime,+1hour %s' % op1
-#   p_tr3 = os.path.join(tmp_dir,'p_tr3.nc')
-#   cdx.chname('%s,prev' % cvar, input=op2, output=p_tr3)
-#   
-#   mergefile=os.path.join(tmp_dir,'mergefile.nc')
-#   difffile=os.path.join(tmp_dir,'difffile.nc')
-#   op3 = '-seltimestep,2/%i/1 %s' % (ntime,input)
-#   cdx.merge(input=op3 +' '+p_tr3, output=mergefile)  
-#   cdx.expr('\'%s=(%s-prev) * ctimestep();\'' % (cvar, cvar), input=mergefile, output=difffile)
-#   
-#   cdx.setattribute('%s@long_name=\'%s\'' % (cvar,new_long_name), input=difffile, output=output)
-   
-   success = True
-   if config.debug:
-     print('DeAaverage %s -> %s' % (input, output))
-  finally:
-   if success or not(config.debug):
-    shutil.rmtree(tmp_dir)  
+  xn[cvar].attrs['long_name'] =  new_long_name
+  xn.to_netcdf(output)
+  
+  if config.debug:
+    print('DeAaverage %s -> %s' % (input, output))
+
     
 def IndexLocalForecastData(target_root=None):
   """
