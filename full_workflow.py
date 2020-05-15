@@ -12,7 +12,17 @@ NO PET is calculated, yet! Just the met data!
 import icon_url_lib as iu
 import gridded_file_lib as gf
 import config
+import sys, os
 
+ole_file = config.abortOnLastErrorFile
+if not(ole_file==None):
+  if os.path.exists(ole_file):
+    if config.debug:
+      print('Aborting because of previous error')
+    sys.exit(1)
+  else:
+    open(ole_file, 'a').close()
+    
 # download the latest forecast grids
 ii = iu.icon_url_lib()
   
@@ -32,6 +42,9 @@ import pet_git_integration_lib as pgi
 
 pgi.UpdateLocalForecast(stash=True, withPET=True)
 pgi.UpdatePublisehedForecasts()
+
+if not(ole_file==None):
+  RemoveFile(ole_file)
 
 if config.debug:
   print('Update complete')

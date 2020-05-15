@@ -6,6 +6,7 @@ Genericly-useful variables.
 """
 
 debug = True
+abortOnLastErrorFile = None
 
 # where to get the NWP outputs:
 url_root_default = 'https://opendata.dwd.de/weather/nwp/icon-eu/grib/'
