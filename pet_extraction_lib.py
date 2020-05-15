@@ -32,7 +32,7 @@ def CalculatePET(xd):
   timestamp = xd.time.data  
   lat = float(xd.lat.data) 
   lon = float(xd.lon.data) 
-  UTC=1
+  UTC=0 # all times are UTC
 
   year = pd.to_datetime(timestamp).year  
   month = pd.to_datetime(timestamp).month  
