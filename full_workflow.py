@@ -2,8 +2,6 @@
 """
 Full workflow to update git-hosted PET forecast data.
 
-NO PET is calculated, yet! Just the met data!
-
 @author: xrayda
 """
 
