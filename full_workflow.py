@@ -11,6 +11,7 @@ import icon_url_lib as iu
 import gridded_file_lib as gf
 import config
 import sys, os
+from generic_lib import *
 
 ole_file = config.abortOnLastErrorFile
 if not(ole_file==None):
@@ -20,14 +21,14 @@ if not(ole_file==None):
     sys.exit(1)
   else:
     open(ole_file, 'a').close()
-    
+
 # download the latest forecast grids
 ii = iu.icon_url_lib()
-  
+
 hh = ii.GetTimeOfMostRecent()
 if config.debug:
   print('Latest forecast is hour '+hh)
-  
+
 gf.Cleanout()
 gf.DownloadPETForecastData(hh)
 
