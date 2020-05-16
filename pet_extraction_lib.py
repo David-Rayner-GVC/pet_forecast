@@ -63,7 +63,21 @@ def CalculatePET(xd):
   
   xd['Tmrt'] = (('time'), np.float32(poi_save[:, 26]) )
   xd.Tmrt.data[0]=np.nan
-  xd.Tmrt.attrs = {"standard_name":"Tmrt", "long_name":"Mean Radiant Temperature", "units":"C"} 
+  xd.Tmrt.attrs = {"standard_name":"Tmrt", "long_name":"Mean Radiant Temperature", "units":"C"}
+
+  xd['IO'] = (('time'), np.float32(poi_save[:, 27]) )
+  xd.IO.data[0]=np.nan
+  xd.IO.attrs = {"standard_name":"IO", "long_name":"Clear-sky solar radiation", "units":"W/m/m"} 
+
+  xd['altitude'] = (('time'), np.float32(poi_save[:, 5]) )
+  xd.altitude.data[0]=np.nan
+  xd.altitude.attrs = {"standard_name":"altitude", "long_name":"Solar altitude", "units":"deg"} 
+  
+  xd['azimuth'] = (('time'), np.float32(poi_save[:, 6]) )
+  xd.azimuth.data[0]=np.nan
+  xd.azimuth.attrs = {"standard_name":"azimuth", "long_name":"Solar azimuth", "units":"deg"
+
+  } 
 
   return xd
 
