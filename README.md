@@ -15,7 +15,6 @@ The script full_workflow:
 If you just want to retrieve a file from pet_json, use pet_git_integration_lib.RetrieveForecast. You'll need gitpython, but you don't need any authentication. 
  
  To-Do
-  - Currently PET is NOT computed! that is, the client would have to do that themselves. We'll get around to that eventually...
   - No checks whether local grid files are up-to-date, they are just downloaded. This can break things if a new forecast is being written (see below)
   - no optimization of the time-series extraction, it is just a loop over locations. So the netcdf files are opened/closed/re-opened many times. But hey, that is what file-system caching is for, and it seems to run fast enough. 
   
