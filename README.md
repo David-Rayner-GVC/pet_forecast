@@ -4,7 +4,8 @@ Create physiological equivalent temperature (PET) forecasts from opendata.dwd.de
 Installation:
 Not really documented. 
  - To update the online data you will need to be able to make git push to https://github.com/David-Rayner-GVC/pet_data using ssh. GitPython
- - need cdo Climate Data Operators, and Python CDO (pycdo). Netcdf4, obviously. 
+ - need cdo Climate Data Operators, with eccodes and netcdf4, obviously. 
+ - Python modules netcdf4, GitPython, matplotlib, cdo. Plus xarray, lxml, everything else pretty standard.
  - https://github.com/biglimp/PETCalculatorWEB - what, this is not public???
  - modify config_RENAME_ME.py to represent your local setup
 

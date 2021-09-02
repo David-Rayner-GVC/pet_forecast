@@ -18,13 +18,14 @@ target_root = '/LOCALDATA/PET__forecast/icon-eu/'
 git_url_root = 'https://api.github.com/repos/David-Rayner-GVC/pet_data/contents/'
 
 # git local root - repository where we dump pet forecast time-series
-git_local_root = '/LOCALDATA/PET__forecast/pet_data'   
+git_local_root = '/LOCALDATA/PET__forecast/pet_data'
+
+# the name of the csv file with the locations for pet_forecasts
+# JUST THE FILENAME - script looks in git_local_root folder!
+locations_file_name = 'locations_config.csv'
 
 # stash_root - directory where we keep a record of forecasts as netcdf
 stash_root = '/LOCALDATA/PET__forecast/pet_stash'   
-
-# the name of the csv file with the locations for pet_forecasts
-locations_file_name = 'locations_config.csv'
 
 # temporary dir for processing, must be deletable!
 tmp_dir = '/LOCALDATA/PET__forecast/icon-eu/tmp_'
