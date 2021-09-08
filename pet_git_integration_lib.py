@@ -17,8 +17,13 @@ class Stations:
   def __init__(self):
     # load dictionary of stations
     import pandas as pd 
+
     fname = os.path.join(config.git_local_root, config.locations_file_name)
-    self.stations = pd.read_csv(fname) 
+    try:
+      self.stations = pd.read_csv(fname) 
+    except:
+      print("Unable to read the dictionary of stations\n>>> Do you need to clone pet_data from git-hub??\n")
+      raise
     
   def Name(self,name):
     """

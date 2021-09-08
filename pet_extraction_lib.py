@@ -90,7 +90,7 @@ def ExtractTimeSeries(filename, cvar, lat, lon):
   # icon uses 0lon at 360? sometimes? 
   # whatever, sometimes the netcdf files are centered on 0.
   xlon = lon
-  if float(ds.lon[0])>0 and lon<float(ds.lon[0]):
+  if float(ds.lon[0])>0 and float(lon)<float(ds.lon[0]):
     xlon = lon + 360 
   xd = ds[cvar].sel(lat=lat, lon=xlon, method='nearest')
   if xd.coords['lon'] > 360:
@@ -167,6 +167,16 @@ def WritePETForecastJSON(xd, json_file):
   with open(json_file,'w') as f:
     f.write('%s\n' % j)
 	
+def WritePETForecastCSV(xd, csv_file):
+  """
+  Write a forecast extracted with ExtractPETForecastData to csv file. 
+  
+  Inputs:
+  xd - xarray from ExtractPETForecastData
+  csv_file  - output file. 
+  """
+
+  xd.to_dataframe.to_csv(csv_file)
 
   
 if __name__ == "__main__":
