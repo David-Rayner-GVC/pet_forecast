@@ -75,9 +75,11 @@ def CalculatePET(xd):
   
   xd['azimuth'] = (('time'), np.float32(poi_save[:, 6]) )
   xd.azimuth.data[0]=np.nan
-  xd.azimuth.attrs = {"standard_name":"azimuth", "long_name":"Solar azimuth", "units":"deg"
+  xd.azimuth.attrs = {"standard_name":"azimuth", "long_name":"Solar azimuth", "units":"deg"}
 
-  } 
+  xd['wind_speed'] = (('time'), np.float32(Ws) )
+  xd.wind_speed.data[0]=np.nan
+  xd.wind_speed.attrs = {"standard_name":"wind_speed", "long_name":"Wind speed", "units":"m/s" } 
 
   return xd
 
