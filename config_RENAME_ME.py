@@ -14,18 +14,22 @@ url_root_default = 'https://opendata.dwd.de/weather/nwp/icon-eu/grib/'
 # where to download NWP data for processing:
 target_root = '/LOCALDATA/PET__forecast/icon-eu/'
 
-# where to commit PET forecasts
-git_url_root = 'https://api.github.com/repos/David-Rayner-GVC/pet_data/contents/'
+# where to retrieve the latest PET forecasts
+git_url_root = 'https://raw.githubusercontent.com/David-Rayner-GVC/pet_data/master/'
 
 # git local root - repository where we dump pet forecast time-series
 git_local_root = '/LOCALDATA/PET__forecast/pet_data'
 
-# the name of the csv file with the locations for pet_forecasts
-# JUST THE FILENAME - script looks in git_local_root folder!
-locations_file_name = 'locations_config.csv'
+# csv file with locations. 
+# EITHER a url or a local file name. Presumably uncomment one of:
+locations_file = git_local_root + '/' + 'locations_config.csv'
+#locations_file = git_url_root + 'locations_config.csv'
 
 # stash_root - directory where we keep a record of forecasts as netcdf
 stash_root = '/LOCALDATA/PET__forecast/pet_stash'   
+
+# Where to write the plots. None for no plots
+plot_root = '/LOCALDATA/PET__forecast/plots'
 
 # temporary dir for processing, must be deletable!
 tmp_dir = '/LOCALDATA/PET__forecast/icon-eu/tmp_'
