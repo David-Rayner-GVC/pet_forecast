@@ -5,6 +5,8 @@ Return xarray, write to local files
 """
 
 import config
+import pet_stash_lib as ps
+from Stations import Stations
 
 from xarray import DataArray, Dataset
 from datetime import datetime, timedelta
@@ -108,10 +110,12 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None, withPET=True):
   """
   Extract time-series from standard netcdf files.
   
-  netcdf_dir - director to look for netcdf files. Should be pre-processed (de-averaged). default is config.target_root/nc4classic
+  netcdf_dir - director to look for netcdf files. Should be pre-processed (de-averaged). default is config.target_root/'netcdf_final'
   lat, lon - coords for time-series, lon is 0-360
   
-  Returns some xarray object stuff
+  withPET=True => calculate Tmrt, PET, UTCI etc for the extracted time-series.
+  
+  Returns some xarray object stuff.
   
   The files to use are specified in config.py as PET_vars
   """
@@ -179,6 +183,29 @@ def WritePETForecastCSV(xd, csv_file):
   """
 
   xd.to_dataframe.to_csv(csv_file)
+
+def UpdateLocalForecast(ID=None, name=None, stash=False, withPET=True):
+  """
+  Extract data, write to JSON
+  File locations are controlled in config.py 
+  ID is currently string name of forecast
+  
+  """
+  
+  df = Stations().GetRow(ID=ID,name=name)
+  
+  for index, d in df.iterrows():
+    xd=ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'],withPET=withPET)
+    xd=xd.assign_coords(Name=d['Name']) 
+    xd=xd.assign_coords(Id=d['Id']) 
+
+    json_file=os.path.join(config.git_local_root, 'json', d['Name'] + '.json')
+    if config.debug:
+      print('updating '+json_file)
+    WritePETForecastJSON(xd, json_file)
+    if stash:
+      # stash here
+      ps.StashSingleForecast(xd)
 
   
 if __name__ == "__main__":

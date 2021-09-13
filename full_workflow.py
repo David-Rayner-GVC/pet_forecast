@@ -37,9 +37,10 @@ gf.Concatenate()
 gf.PostProcessForecastData()
 
 # Workflow 2 - extract time-series & udpate the distributed copies on GIT
-import pet_git_integration_lib as pgi
+import pet_extraction_lib as pel
+pel.UpdateLocalForecast(stash=True)
 
-pgi.UpdateLocalForecast(stash=True, withPET=True)
+import pet_git_integration_lib as pgi
 pgi.UpdatePublisehedForecasts()
 
 if not(ole_file==None):
