@@ -223,9 +223,11 @@ def RetrieveLocalForecast(ID=None, name=None, asXarray=True, asDatetime64=True):
   asDatetime64 - convert dates from string to asDatetime64
  
   """
-  df = Stations().GetRow(ID=ID,name=name)
+  if ID!=None and name==None:
+    df = Stations().GetRow(ID=ID)
+    name = df.Name.values[0]
+  fname =  name + '.json'
 
-  fname = df.Name.values[0] + '.json'
   url = Path(config.git_local_root) / 'json' / fname 
   
   with open(url) as f:
