@@ -39,5 +39,7 @@ class Stations:
       df = df.loc[df['Name'] == name]
     return df
 
-
+  def AllNames(self):
+    "Return all the names as a list"
+    return self.stations.Name.values.tolist()
 
