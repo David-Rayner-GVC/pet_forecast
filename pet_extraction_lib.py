@@ -17,8 +17,13 @@ import os
 import glob
 import re
 import numpy as np
+from pathlib import Path
 
 # and this is a local one
+#try:
+#  sys.path.append(config.PETCalculatorWEB_path)
+#except:
+#  pass
 from petprocessingprognose import petcalcprognose
 
 
@@ -206,6 +211,41 @@ def UpdateLocalForecast(ID=None, name=None, stash=False, withPET=True):
     if stash:
       # stash here
       ps.StashSingleForecast(xd)
+
+
+def RetrieveLocalForecast(ID=None, name=None, asXarray=True, asDatetime64=True):
+  """ read a forecast json file from local repo  
+  
+  ID - the numeric ID of the station that you want, OR
+  Name - the Name of the station that you want
+  
+  asXarray - return xarray, rather than a dictionary
+  asDatetime64 - convert dates from string to asDatetime64
+ 
+  """
+  df = Stations().GetRow(ID=ID,name=name)
+
+  fname = df.Name.values[0] + '.json'
+  url = Path(config.git_local_root) / 'json' / fname 
+  
+  with open(url) as f:
+    data = json.load(f)
+
+  for key, value in data['data_vars'].items():
+   data['data_vars'][key]['data'] = [np.nan if isinstance(x,str) else x for x in value['data'] ]
+
+  # re-create xarray Dataset
+  if asXarray:
+    data = Dataset.from_dict(data)
+
+  # Convert time from string to datetime64 if you want. 
+  if asDatetime64:
+    if not(asXarray):
+      raise ValueError('asXarray must be set for asDatetime64 converstion')
+    import pandas
+    data['time'].values = pandas.to_datetime(data['time'].values)
+
+  return(data)
 
   
 if __name__ == "__main__":
