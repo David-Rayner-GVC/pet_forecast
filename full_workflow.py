@@ -40,6 +40,9 @@ gf.PostProcessForecastData()
 import pet_extraction_lib as pel
 pel.UpdateLocalForecast(stash=True)
 
+import plotting
+plotting.UpdateLocalPlots(useLocalData=True, addTime=False)
+
 import pet_git_integration_lib as pgi
 pgi.UpdatePublisehedForecasts()
 
