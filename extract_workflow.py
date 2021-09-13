@@ -13,6 +13,10 @@ import pet_extraction_lib as pel
 pel.UpdateLocalForecast(stash=True)
 pgi.UpdatePublisehedForecasts()
 
+import plotting
+plotting.UpdateLocalPlots(useLocalData=True, addTime=False)
+
+
 if config.debug:
   print('Update complete')
 
