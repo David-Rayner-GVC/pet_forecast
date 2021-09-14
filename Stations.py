@@ -27,7 +27,7 @@ class Stations:
       raise
 
     
-  def GetRow(self, ID=None, name=None):
+  def GetRow(self, ID=None, Name=None):
     """
     Get a station by ID or name.
     Return a dictionary for the row. With both ID and name=None, return all rows.
@@ -35,8 +35,8 @@ class Stations:
     df=self.stations
     if ID!=None:
       df = df.loc[df['Id'] == ID]
-    if name!=None:
-      df = df.loc[df['Name'] == name]
+    if Name!=None:
+      df = df.loc[df['Name'] == Name]
     return df
 
   def AllNames(self):
