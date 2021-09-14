@@ -195,11 +195,12 @@ def UpdateLocalForecast(Name=None, ID=None, stash=False, withPET=True):
   File locations are controlled in config.py 
   ID is currently string name of forecast
   
+  By default update all staions in the config.locations_file!
+  Set Name or ID to update just one.
+  
   """
   
-  if ID!=None and Name==None:
-    df = Stations().GetRow(ID=ID)
-    Name = df.Name.values[0]
+  df = Stations().GetRow(ID=ID, Name=Name)
   
   for index, d in df.iterrows():
     xd=ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'],withPET=withPET)
@@ -225,7 +226,9 @@ def RetrieveLocalForecast(Name=None, ID=None, asXarray=True, asDatetime64=True):
   asDatetime64 - convert dates from string to asDatetime64
  
   """
-  if ID!=None and Name==None:
+  assert ID!=None or Name!=None, "You must specify ID or Name"
+
+  if ID!=None:
     df = Stations().GetRow(ID=ID)
     Name = df.Name.values[0]
   fname =  Name + '.json'

@@ -29,6 +29,8 @@ def RetrieveForecast(Name=None, ID=None, asXarray=True, asDatetime64=True):
   asDatetime64 - convert dates from string to asDatetime64
  
   """
+  assert ID!=None or Name!=None, "You must specify ID or Name"
+
   if ID!=None:
     # get name from station list
     df = Stations(config.git_url_root + 'locations_config.csv').GetRow(ID=ID)
