@@ -183,6 +183,8 @@ def UpdateLocalPlots(useLocalData=True, addTime=True, format='png', swedish=Fals
     from pet_git_integration_lib import RetrieveForecast 
     
   for name in st.AllNames():
+    if config.debug:
+      print('updating plot for location:'+name)
     xr = RetrieveForecast(name)
     plt = forecast_plot(xr, output_dir=config.plot_root,
                   addTime=addTime, format=format, swedish=swedish)
