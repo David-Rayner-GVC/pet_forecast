@@ -213,7 +213,7 @@ def UpdateLocalForecast(ID=None, name=None, stash=False, withPET=True):
       ps.StashSingleForecast(xd)
 
 
-def RetrieveLocalForecast(ID=None, name=None, asXarray=True, asDatetime64=True):
+def RetrieveLocalForecast(Name=None, ID=None, asXarray=True, asDatetime64=True):
   """ read a forecast json file from local repo  
   
   ID - the numeric ID of the station that you want, OR
@@ -223,10 +223,10 @@ def RetrieveLocalForecast(ID=None, name=None, asXarray=True, asDatetime64=True):
   asDatetime64 - convert dates from string to asDatetime64
  
   """
-  if ID!=None and name==None:
+  if ID!=None and Name==None:
     df = Stations().GetRow(ID=ID)
-    name = df.Name.values[0]
-  fname =  name + '.json'
+    Name = df.Name.values[0]
+  fname =  Name + '.json'
 
   url = Path(config.git_local_root) / 'json' / fname 
   
