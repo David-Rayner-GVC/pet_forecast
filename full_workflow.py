@@ -40,11 +40,13 @@ gf.PostProcessForecastData()
 import pet_extraction_lib as pel
 pel.UpdateLocalForecast(stash=True)
 
+import pet_git_integration_lib as pgi
+pgi.UpdatePublisehedForecasts()
+
 import plotting
 plotting.UpdateLocalPlots(useLocalData=True, addTime=False)
 
-import pet_git_integration_lib as pgi
-pgi.UpdatePublisehedForecasts()
+
 
 if not(ole_file==None):
   RemoveFile(ole_file)
