@@ -18,6 +18,7 @@ import glob
 import re
 import numpy as np
 from pathlib import Path
+import generic_lib
 
 # and this is a local one
 #try:
@@ -187,7 +188,8 @@ def WritePETForecastCSV(xd, csv_file):
   csv_file  - output file. 
   """
 
-  xd.to_dataframe.to_csv(csv_file)
+  xd.to_dataframe().to_csv(csv_file)
+
 
 def UpdateLocalForecast(Name=None, ID=None, stash=False, withPET=True):
   """
@@ -199,7 +201,15 @@ def UpdateLocalForecast(Name=None, ID=None, stash=False, withPET=True):
   Set Name or ID to update just one.
   
   """
-  
+  withCSV=False  # then look for a config entry
+  try:
+    withCSV = config.csv_root!=None
+  except:
+    pass 
+  if withCSV:
+    csv_root = Path(config.csv_root)
+    generic_lib.CheckDirExists(csv_root)
+    
   df = Stations().GetRow(ID=ID, Name=Name)
   
   for index, d in df.iterrows():
@@ -211,9 +221,17 @@ def UpdateLocalForecast(Name=None, ID=None, stash=False, withPET=True):
     if config.debug:
       print('updating '+json_file)
     WritePETForecastJSON(xd, json_file)
+    
     if stash:
       # stash here
       ps.StashSingleForecast(xd)
+    
+    if withCSV:
+      n = d['Name'] + '.csv'
+      csv_file=csv_root / n
+      if config.debug:
+         print('updating '+str(csv_file))
+      xd.to_dataframe().to_csv(os.fspath(csv_file))
 
 
 def RetrieveLocalForecast(Name=None, ID=None, asXarray=True, asDatetime64=True):
