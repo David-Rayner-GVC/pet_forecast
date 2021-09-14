@@ -250,8 +250,8 @@ def RetrieveLocalForecast(Name=None, ID=None, asXarray=True, asDatetime64=True):
     if not(asXarray):
       raise ValueError('asXarray must be set for asDatetime64 converstion')
     import pandas
-    data['time'].values = pandas.to_datetime(data['time'].values)
-
+    #data['time'].values = pandas.to_datetime(data['time'].values)
+    data = data.assign_coords({'time': pandas.to_datetime(data['time'].values)})
   return(data)
 
   
