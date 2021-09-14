@@ -189,7 +189,7 @@ def WritePETForecastCSV(xd, csv_file):
 
   xd.to_dataframe.to_csv(csv_file)
 
-def UpdateLocalForecast(ID=None, name=None, stash=False, withPET=True):
+def UpdateLocalForecast(Name=None, ID=None, stash=False, withPET=True):
   """
   Extract data, write to JSON
   File locations are controlled in config.py 
@@ -197,7 +197,9 @@ def UpdateLocalForecast(ID=None, name=None, stash=False, withPET=True):
   
   """
   
-  df = Stations().GetRow(ID=ID,name=name)
+  if ID!=None and Name==None:
+    df = Stations().GetRow(ID=ID)
+    Name = df.Name.values[0]
   
   for index, d in df.iterrows():
     xd=ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'],withPET=withPET)
