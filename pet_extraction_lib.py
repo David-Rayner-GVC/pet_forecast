@@ -75,7 +75,7 @@ def CalculatePET(xd):
 
   xd['IO'] = (('time'), np.float32(poi_save[:, 27]) )
   xd.IO.data[0]=np.nan
-  xd.IO.attrs = {"standard_name":"IO", "long_name":"Clear-sky solar radiation", "units":"W/m/m"} 
+  xd.IO.attrs = {"standard_name":"IO", "long_name":"Clear-sky solar radiation", "units":"W m**2"} 
 
   xd['altitude'] = (('time'), np.float32(poi_save[:, 5]) )
   xd.altitude.data[0]=np.nan
@@ -87,7 +87,7 @@ def CalculatePET(xd):
 
   xd['wind_speed'] = (('time'), np.float32(Ws) )
   xd.wind_speed.data[0]=np.nan
-  xd.wind_speed.attrs = {"standard_name":"wind_speed", "long_name":"Wind speed", "units":"m/s" } 
+  xd.wind_speed.attrs = {"standard_name":"wind_speed", "long_name":"10 metre wind speed", "units":"m s**-1" } 
 
   return xd
 
