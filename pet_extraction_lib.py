@@ -75,7 +75,7 @@ def CalculatePET(xd):
 
   xd['IO'] = (('time'), np.float32(poi_save[:, 27]) )
   xd.IO.data[0]=np.nan
-  xd.IO.attrs = {"standard_name":"IO", "long_name":"Clear-sky solar radiation", "units":"W m**2"} 
+  xd.IO.attrs = {"standard_name":"IO", "long_name":"Clear-sky solar radiation", "units":"W m-2"} 
 
   xd['altitude'] = (('time'), np.float32(poi_save[:, 5]) )
   xd.altitude.data[0]=np.nan
