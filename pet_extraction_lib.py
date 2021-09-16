@@ -27,6 +27,28 @@ import generic_lib
 #  pass
 from petprocessingprognose import petcalcprognose
 
+def _AverageAndOffsetVariable(da_in):
+  """
+  Average and offset a single DataArray.
+  Make values the average of value an previous value. 
+  First value is NaN.
+  Returns modified DataArray
+  """
+  da =da_in.copy()
+  da.values[1:]=(da[1:].values + da[0:-1].values )/2
+  da.values[0]=np.nan
+  return da
+
+def AverageAndOffset(xd):
+  """
+  We will present data for hour-intervals rather than on-hour time-points. 
+  Radiation is already average up to the time-point, but the other variables need to be averaged.
+  """
+  xd.air_temperature = _AverageAndOffsetVariable(xd.air_temperature)
+  relative_humidity = _AverageAndOffsetVariable(xd.relative_humidity)
+  eastward_wind = _AverageAndOffsetVariable(xd.eastward_wind)
+  northward_wind = _AverageAndOffsetVariable(xd.northward_wind)
+  return xd
 
 def CalculatePET(xd):
   """
@@ -102,7 +124,7 @@ def ExtractTimeSeries(filename, cvar, lat, lon):
   xlon = lon
   if float(ds.lon[0])>0 and float(lon)<float(ds.lon[0]):
     xlon = lon + 360 
-  xd = ds[cvar].sel(lat=float(lat), lon=float(xlon), method='nearest')
+  xd = ds[cvar].sel(lat=lat, lon=xlon, method='nearest')
   if xd.coords['lon'] > 360:
     xd.coords['lon'] = xd.coords['lon']-360
   xd = xd.squeeze()
@@ -112,22 +134,22 @@ def ExtractTimeSeries(filename, cvar, lat, lon):
     pass
   return xd
 
-def ExtractPETForecastData(lat, lon, netcdf_dir=None, withPET=True):
+def ExtractGridData(lat, lon, netcdf_dir=None):
   """
   Extract time-series from standard netcdf files.
   
-  netcdf_dir - director to look for netcdf files. Should be pre-processed (de-averaged). default is config.target_root/'netcdf_final'
+  netcdf_dir - director to look for netcdf files. 
+               Should be pre-processed (de-averaged). default is config.target_root/'netcdf_final'
+               filenames must be format icon-eu_europe_regular-lat-lon_single-level_DATE_VARNAME.nc
+               The files to use are specified in config.py as PET_vars
+
   lat, lon - coords for time-series, lon is 0-360
-  
-  withPET=True => calculate Tmrt, PET, UTCI etc for the extracted time-series.
-  
-  Returns some xarray object stuff.
-  
-  The files to use are specified in config.py as PET_vars
+
+  return a xarray.Dataset
   """
-  if config.debug:
-    print('ExtractPETForecastData lat=%f, lon=%f'%(lat, lon))
-    
+  if config.debug>2:
+    print('ExtractGridData lat=%f, lon=%f, netcdf_dir. '%(lat, lon, netcdf_dir))
+  
   if netcdf_dir==None:
     netcdf_dir = os.path.join(config.target_root,'netcdf_final')
     
@@ -149,9 +171,35 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None, withPET=True):
   xd['air_temperature'].attrs['units']='C'  
   xd['time'].attrs['time_zone']='UTC'
   
+  return xd
+
+def ExtractPETForecastData(lat, lon, netcdf_dir=None, withPET=True):
+  """
+  Extract time-series from standard netcdf files, and calculate Tmrt/PET/UTCI
+  
+  See ExtractGridData for lat/lon/netcdf inputs
+  
+  withPET=True => no longer used. Always treated as true! 
+  
+  Returns xarray.Dataset with addittional fields from CalculatePET(xd)
+  
+  NOTE that the non-radiation fields are CHANGED to be the average of the values
+  at the timepoint and the previous value (and first is NaN). 
+  
+  Thus the PET/UTCI/Tmrt should be regarded as the average for
+  the time-interval PRECEEDING the timepoint (as with the radiation values).
+  
+  """
+  if config.debug:
+    print('ExtractPETForecastData lat=%f, lon=%f'%(lat, lon))
+
+  df = ExtractGridData(lat, lon, netcdf_dir=netcdf_dir)
+  
+  # take average of non-radiation variables.
+  xd = AverageAndOffset(xd)
+
   # now add PET and UTCI
-  if withPET:
-    CalculatePET(xd)
+  xd = CalculatePET(xd)
   
   return xd
   
