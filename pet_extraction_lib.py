@@ -102,7 +102,7 @@ def ExtractTimeSeries(filename, cvar, lat, lon):
   xlon = lon
   if float(ds.lon[0])>0 and float(lon)<float(ds.lon[0]):
     xlon = lon + 360 
-  xd = ds[cvar].sel(lat=lat, lon=xlon, method='nearest')
+  xd = ds[cvar].sel(lat=float(lat), lon=float(xlon), method='nearest')
   if xd.coords['lon'] > 360:
     xd.coords['lon'] = xd.coords['lon']-360
   xd = xd.squeeze()
