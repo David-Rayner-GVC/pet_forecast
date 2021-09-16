@@ -44,10 +44,10 @@ def AverageAndOffset(xd):
   We will present data for hour-intervals rather than on-hour time-points. 
   Radiation is already average up to the time-point, but the other variables need to be averaged.
   """
-  xd.air_temperature = _AverageAndOffsetVariable(xd.air_temperature)
-  relative_humidity = _AverageAndOffsetVariable(xd.relative_humidity)
-  eastward_wind = _AverageAndOffsetVariable(xd.eastward_wind)
-  northward_wind = _AverageAndOffsetVariable(xd.northward_wind)
+  xd['air_temperature'] = _AverageAndOffsetVariable(xd.air_temperature)
+  xd['relative_humidity'] = _AverageAndOffsetVariable(xd.relative_humidity)
+  xd['eastward_wind'] = _AverageAndOffsetVariable(xd.eastward_wind)
+  xd['northward_wind'] = _AverageAndOffsetVariable(xd.northward_wind)
   return xd
 
 def CalculatePET(xd):
@@ -164,8 +164,13 @@ def ExtractGridData(lat, lon, netcdf_dir=None):
       cvar = config.variable_names[fileLabel]
       xa = ExtractTimeSeries(filePath, cvar, lat, lon)
       xa.name=config.standard_names[fileLabel] 
+      try:
+        xa.attrs['height']=float(xa.height.values)
+        xa = xa.reset_coords(names='height',drop=True)
+      except:
+        pass
       xList.append(xa)
-    
+   
   xd = xr.merge(xList)
   xd['air_temperature'].data = xd['air_temperature'].data-273.15
   xd['air_temperature'].attrs['units']='C'  
@@ -193,7 +198,7 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None, withPET=True):
   if config.debug:
     print('ExtractPETForecastData lat=%f, lon=%f'%(lat, lon))
 
-  df = ExtractGridData(lat, lon, netcdf_dir=netcdf_dir)
+  xd = ExtractGridData(lat, lon, netcdf_dir=netcdf_dir)
   
   # take average of non-radiation variables.
   xd = AverageAndOffset(xd)
