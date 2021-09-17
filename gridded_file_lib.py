@@ -123,10 +123,13 @@ def DownloadPETForecastData( hh, target_root=None, vars=None, url_root=None, ove
   
   Inputs.
     hh - eg '03'
-    target_root. default from config.py eg '/mnt/c/Users/xrayda/LOCALDATA/PET__forecast/icon-eu/
-    vars - default from config.py 
-    url_root . default from config.py 'https://opendata.dwd.de/weather/nwp/icon-eu/'
-Outputs
+    target_root. default from config.py eg '/mnt/c/Users/myname/LOCALDATA/PET__forecast/icon-eu/
+    vars - default config.PET_vars 
+    url_root . default from config.py config.target_root. eg 'https://opendata.dwd.de/weather/nwp/icon-eu/'
+    overwrite - logical, default False => DO not download grib files if target_root/grib/<cvar> exists!
+                That is, does not look at individual files, just the presence of
+                the directory. Does not affect conversion to netcdf files.
+  Outputs
     dictionary of created files, keys are vars, values are full-paths.
 	
   This function:
@@ -152,14 +155,15 @@ Outputs
     _ConvertVar(grib_dir, nc_dir)
 
   
-def Concatenate():
+def Concatenate(vars=None):
   """
-  Concatenate step in the processing:
+  Concatenate step in the processing, creating directories:
   netcdf -> netcdf_concat
   """
   
   target_root = config.target_root
-  vars = config.PET_vars
+  if vars==None:
+    vars = config.PET_vars
   
   concatFiles=dict()
       
