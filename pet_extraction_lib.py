@@ -19,6 +19,8 @@ import re
 import numpy as np
 from pathlib import Path
 import generic_lib
+import metpy
+from metpy.units import units
 
 # and this is a local one
 #try:
@@ -45,7 +47,8 @@ def AverageAndOffset(xd):
   Radiation is already average up to the time-point, but the other variables need to be averaged.
   """
   xd['air_temperature'] = _AverageAndOffsetVariable(xd.air_temperature)
-  xd['relative_humidity'] = _AverageAndOffsetVariable(xd.relative_humidity)
+  xd['mslp'] = _AverageAndOffsetVariable(xd.mslp)
+  xd['specific_humidity'] = _AverageAndOffsetVariable(xd.specific_humidity)
   xd['eastward_wind'] = _AverageAndOffsetVariable(xd.eastward_wind)
   xd['northward_wind'] = _AverageAndOffsetVariable(xd.northward_wind)
   return xd
@@ -71,7 +74,13 @@ def CalculatePET(xd):
   minu = pd.to_datetime(timestamp).minute 
    
   Ta = xd.air_temperature.data
-  RH = xd.relative_humidity.data
+  station_pressure = metpy.calc.add_height_to_pressure(
+      xd.mslp.data * units[xd.mslp.attrs['units']], 
+      float(xd.station_height.data)*units.m)
+  RH = metpy.calc.relative_humidity_from_specific_humidity(
+      station_pressure, Ta*units.degC,
+      xd.specific_humidity.data * units[xd.specific_humidity.attrs['units']])
+  RH = np.float32(RH.to(units['%']))
   radD = xd.downward_diffuse.data
   radI = xd.downward_direct.data
   Ws = np.sqrt((xd.eastward_wind.data)**2 + (xd.northward_wind.data)**2)
@@ -110,6 +119,10 @@ def CalculatePET(xd):
   xd['wind_speed'] = (('time'), np.float32(Ws) )
   xd.wind_speed.data[0]=np.nan
   xd.wind_speed.attrs = {"standard_name":"wind_speed", "long_name":"10 metre wind speed", "units":"m s**-1" } 
+
+  xd['RH'] = (('time'), np.float32(RH) )
+  xd.RH.data[0]=np.nan
+  xd.RH.attrs = {"standard_name":"relative_humidity", "long_name":"Relative humidity", "units":"%" } 
 
   return xd
 
@@ -173,16 +186,18 @@ def ExtractGridData(lat, lon, netcdf_dir=None):
    
   xd = xr.merge(xList)
   xd['air_temperature'].data = xd['air_temperature'].data-273.15
-  xd['air_temperature'].attrs['units']='C'  
+  xd['air_temperature'].attrs['units']='degC'  
   xd['time'].attrs['time_zone']='UTC'
   
   return xd
 
-def ExtractPETForecastData(lat, lon, netcdf_dir=None, withPET=True):
+def ExtractPETForecastData(lat, lon, height, netcdf_dir=None, withPET=True):
   """
   Extract time-series from standard netcdf files, and calculate Tmrt/PET/UTCI
   
   See ExtractGridData for lat/lon/netcdf inputs
+  
+  Height is used to convert mslp to station pressure for converting specific humidity to rh!
   
   withPET=True => no longer used. Always treated as true! 
   
@@ -199,6 +214,7 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None, withPET=True):
     print('ExtractPETForecastData lat=%f, lon=%f'%(lat, lon))
 
   xd = ExtractGridData(lat, lon, netcdf_dir=netcdf_dir)
+  xd = xd.assign_coords({"station_height":float(height)})
   
   # take average of non-radiation variables.
   xd = AverageAndOffset(xd)
@@ -266,7 +282,8 @@ def UpdateLocalForecast(Name=None, ID=None, stash=False, withPET=True):
   df = Stations().GetRow(ID=ID, Name=Name)
   
   for index, d in df.iterrows():
-    xd=ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'],withPET=withPET)
+    xd=ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'], 
+                              height=d['Height (m)'], withPET=withPET)
     xd=xd.assign_coords(Name=d['Name']) 
     xd=xd.assign_coords(Id=d['Id']) 
 
