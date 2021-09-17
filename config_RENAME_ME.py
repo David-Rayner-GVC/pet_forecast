@@ -34,13 +34,15 @@ plot_root = '/LOCALDATA/PET__forecast/plots'
 # temporary dir for processing, must be deletable!
 tmp_dir = '/LOCALDATA/PET__forecast/icon-eu/tmp_'
 
-PET_vars = ('ASWDIFD_S', 'ASWDIR_S', 'RELHUM_2M','T_2M','U_10M','V_10M')
+PET_vars = ('ASWDIFD_S', 'ASWDIR_S', 'QV_2m','PMSL','T_2M','U_10M','V_10M')
 
-variable_names = {'ASWDIFD_S':'ASWDIFD_S', 'ASWDIR_S':'ASWDIR_S', 'RELHUM_2M':'2r','T_2M':'2t','U_10M':'10u','V_10M':'10v'}
+variable_names = {'ASWDIFD_S':'ASWDIFD_S', 'ASWDIR_S':'ASWDIR_S', 'QV_2m':'QV_2m',
+                  'PMSL':'prmsl','T_2M':'2t','U_10M':'10u','V_10M':'10v'}
 
 standard_names = {'ASWDIFD_S':'downward_diffuse', 
 'ASWDIR_S':'downward_direct',
-'RELHUM_2M':'relative_humidity',
+'QV_2m':'specific_humidity',
+'PMSL':'mslp',
 'T_2M':'air_temperature',
 'U_10M':'eastward_wind',
 'V_10M':'northward_wind'}
