@@ -45,12 +45,15 @@ def AverageAndOffset(xd):
   """
   We will present data for hour-intervals rather than on-hour time-points. 
   Radiation is already average up to the time-point, but the other variables need to be averaged.
+  But NaN the first ratiation anyway, as it is always 0?
   """
   xd['air_temperature'] = _AverageAndOffsetVariable(xd.air_temperature)
   xd['mslp'] = _AverageAndOffsetVariable(xd.mslp)
   xd['specific_humidity'] = _AverageAndOffsetVariable(xd.specific_humidity)
   xd['eastward_wind'] = _AverageAndOffsetVariable(xd.eastward_wind)
   xd['northward_wind'] = _AverageAndOffsetVariable(xd.northward_wind)
+  xd.downward_direct[0]=np.nan
+  xd.downward_diffuse[0]=np.nan
   return xd
 
 def CalculatePET(xd):
