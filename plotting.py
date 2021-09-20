@@ -41,6 +41,7 @@ def forecast_plot(xr, output_dir='.', addTime=True, format='png', swedish=False)
   base_fontsize=12
   
   def UsualSuspects(ax, topPlot=False, asInt=True):
+    ax.grid()
     "internal function to format an axis"
     #pad = (ax.get_yticks()[-1] - ax.get_yticks()[0])/50
     #ax.set_ylim([ax.get_yticks()[0]-pad, ax.get_yticks()[-1]+pad])  
@@ -117,33 +118,42 @@ def forecast_plot(xr, output_dir='.', addTime=True, format='png', swedish=False)
   fig.suptitle(str(xr.Name.values), y=0.99, fontsize=base_fontsize*3)
 
   # Tmrt, PET, air temp
-  df['air_temperature'].plot(ax=ax0, color="silver", linewidth=linewidth, marker='o', label='Air temp.', grid=True)
-  df['PET'].plot(ax=ax0, color="orchid", linewidth=linewidth, marker='o', label="PET", grid=True)
-  df['UTCI'].plot(ax=ax0, color="darkorange", linewidth=linewidth, marker='o', label="UTCI", grid=True)
+  #df['air_temperature'].plot(ax=ax0, color="silver", linewidth=linewidth, marker='o')
+  offset = np.timedelta64(10,'m')
+  ax0.step(df.air_temperature.index.values, df.air_temperature.values,  
+           linewidth=linewidth, color="silver",  label='Air temp.')
+  ax0.step(df['PET'].index.values-offset, df.PET.values, color="orchid", 
+           linewidth=linewidth, label="PET")
+  ax0.step(df['UTCI'].index.values+offset, df.UTCI.values, color="darkorange", 
+           linewidth=linewidth, label="UTCI")
   plotTitle = 'Heat Indicators'
   yLabel = "($^\circ$C)"
   UsualSuspects(ax0,topPlot=True)
   ax0.legend(fontsize=base_fontsize)
   
-  df['Tmrt'].plot(ax=ax1, color="royalblue", linewidth=linewidth, grid=True)
+  ax1.step(df['Tmrt'].index, df.Tmrt.values, color="royalblue", linewidth=linewidth)
   plotTitle = "T$_{mrt}$"
   yLabel = "($^\circ$C)"
   UsualSuspects(ax1)
 
-  df['relative_humidity'].plot(ax=ax2, color="royalblue", linewidth=linewidth, grid=True)
+  ax2.step(df['relative_humidity'].index, df.relative_humidity.values, 
+           color="royalblue", linewidth=linewidth)
   plotTitle = 'Relative humidity'
   yLabel = "(%)"
   UsualSuspects(ax2)
   
-  df['downward_diffuse'].plot(ax=ax3, color="skyblue",  label="Diffuse", linewidth=linewidth, grid=True)
-  df['downward_direct'].plot(ax=ax3, color="darkorange",  label="Direct", linewidth=linewidth, grid=True)
+  ax3.step(df['downward_direct'].index.values - offset, df.downward_direct.values, color="darkorange",  
+           label="Direct", linewidth=linewidth)
+  ax3.step(df['downward_diffuse'].index.values + offset, df.downward_diffuse.values, color="skyblue", 
+           label="Diffuse", linewidth=linewidth)
   plotTitle = 'Solar radiation'
   yLabel = "(W.m$^2$.s)"
   UsualSuspects(ax3)
   ax3.legend(fontsize=base_fontsize)
   #ax3.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
   
-  df['wind_speed'].plot(ax=ax4, color="royalblue", linewidth=linewidth, grid=True)
+  ax4.step(df['wind_speed'].index, df.wind_speed.values, color="royalblue",
+           linewidth=linewidth)
   plotTitle = 'Wind speed'
   yLabel = "(m/s)"
   UsualSuspects(ax4)
