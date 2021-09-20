@@ -19,8 +19,8 @@ import re
 import numpy as np
 from pathlib import Path
 import generic_lib
-import metpy
 from metpy.units import units
+from metpy import calc as mc
 
 # and this is a local one
 #try:
@@ -74,10 +74,10 @@ def CalculatePET(xd):
   minu = pd.to_datetime(timestamp).minute 
    
   Ta = xd.air_temperature.data
-  station_pressure = metpy.calc.add_height_to_pressure(
+  station_pressure = mc.add_height_to_pressure(
       xd.mslp.data * units[xd.mslp.attrs['units']], 
       float(xd.station_height.data)*units.m)
-  RH = metpy.calc.relative_humidity_from_specific_humidity(
+  RH = mc.relative_humidity_from_specific_humidity(
       station_pressure, Ta*units.degC,
       xd.specific_humidity.data * units[xd.specific_humidity.attrs['units']])
   RH = np.float32(RH.to(units['%']))
