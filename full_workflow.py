@@ -23,11 +23,16 @@ if not(ole_file==None):
     open(ole_file, 'a').close()
 
 # download the latest forecast grids
-ii = iu.icon_url_lib()
+if len(sys.argv)>1:
+  hh = sys.argv[1]
+  if config.debug:
+    print('User-specified forecast hour '+hh)
+else:
+  ii = iu.icon_url_lib()
+  hh = ii.GetTimeOfMostRecent()
 
-hh = ii.GetTimeOfMostRecent()
-if config.debug:
-  print('Latest forecast is hour '+hh)
+  if config.debug:
+    print('Using latest forecast hour '+hh)
 
 gf.Cleanout()
 gf.DownloadPETForecastData(hh)
