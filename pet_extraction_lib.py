@@ -19,6 +19,8 @@ import re
 import numpy as np
 from pathlib import Path
 import generic_lib
+from metpy.units import units
+from metpy import calc as mc
 
 # and this is a local one
 #try:
@@ -27,6 +29,32 @@ import generic_lib
 #  pass
 from petprocessingprognose import petcalcprognose
 
+def _AverageAndOffsetVariable(da_in):
+  """
+  Average and offset a single DataArray.
+  Make values the average of value an previous value. 
+  First value is NaN.
+  Returns modified DataArray
+  """
+  da =da_in.copy()
+  da.values[1:]=(da[1:].values + da[0:-1].values )/2
+  da.values[0]=np.nan
+  return da
+
+def AverageAndOffset(xd):
+  """
+  We will present data for hour-intervals rather than on-hour time-points. 
+  Radiation is already average up to the time-point, but the other variables need to be averaged.
+  But NaN the first ratiation anyway, as it is always 0?
+  """
+  xd['air_temperature'] = _AverageAndOffsetVariable(xd.air_temperature)
+  xd['mslp'] = _AverageAndOffsetVariable(xd.mslp)
+  xd['specific_humidity'] = _AverageAndOffsetVariable(xd.specific_humidity)
+  xd['eastward_wind'] = _AverageAndOffsetVariable(xd.eastward_wind)
+  xd['northward_wind'] = _AverageAndOffsetVariable(xd.northward_wind)
+  xd.downward_direct[0]=np.nan
+  xd.downward_diffuse[0]=np.nan
+  return xd
 
 def CalculatePET(xd):
   """
@@ -49,7 +77,13 @@ def CalculatePET(xd):
   minu = pd.to_datetime(timestamp).minute 
    
   Ta = xd.air_temperature.data
-  RH = xd.relative_humidity.data
+  station_pressure = mc.add_height_to_pressure(
+      xd.mslp.data * units[xd.mslp.attrs['units']], 
+      float(xd.station_height.data)*units.m)
+  RH = mc.relative_humidity_from_specific_humidity(
+      station_pressure, Ta*units.degC,
+      xd.specific_humidity.data * units[xd.specific_humidity.attrs['units']])
+  RH = np.float32(RH.to(units['%']))
   radD = xd.downward_diffuse.data
   radI = xd.downward_direct.data
   Ws = np.sqrt((xd.eastward_wind.data)**2 + (xd.northward_wind.data)**2)
@@ -89,6 +123,14 @@ def CalculatePET(xd):
   xd.wind_speed.data[0]=np.nan
   xd.wind_speed.attrs = {"standard_name":"wind_speed", "long_name":"10 metre wind speed", "units":"m s**-1" } 
 
+  xd['relative_humidity'] = (('time'), np.float32(RH) )
+  xd.relative_humidity.data[0]=np.nan
+  xd.relative_humidity.attrs = {"standard_name":"relative_humidity", "long_name":"Relative humidity", "units":"%" } 
+
+  xd['longwave_down'] = (('time'), np.float32(poi_save[:, 16]) )
+  xd.longwave_down.data[0]=np.nan
+  xd.longwave_down.attrs = {"standard_name":"longwave_down", "long_name":"Longwave down from SOLWEIG1d_2020a", "units":"W m-2" } 
+
   return xd
 
 def ExtractTimeSeries(filename, cvar, lat, lon):
@@ -112,22 +154,22 @@ def ExtractTimeSeries(filename, cvar, lat, lon):
     pass
   return xd
 
-def ExtractPETForecastData(lat, lon, netcdf_dir=None, withPET=True):
+def ExtractGridData(lat, lon, netcdf_dir=None):
   """
   Extract time-series from standard netcdf files.
   
-  netcdf_dir - director to look for netcdf files. Should be pre-processed (de-averaged). default is config.target_root/'netcdf_final'
+  netcdf_dir - director to look for netcdf files. 
+               Should be pre-processed (de-averaged). default is config.target_root/'netcdf_final'
+               filenames must be format icon-eu_europe_regular-lat-lon_single-level_DATE_VARNAME.nc
+               The files to use are specified in config.py as PET_vars
+
   lat, lon - coords for time-series, lon is 0-360
-  
-  withPET=True => calculate Tmrt, PET, UTCI etc for the extracted time-series.
-  
-  Returns some xarray object stuff.
-  
-  The files to use are specified in config.py as PET_vars
+
+  return a xarray.Dataset
   """
-  if config.debug:
-    print('ExtractPETForecastData lat=%f, lon=%f'%(lat, lon))
-    
+  if config.debug>2:
+    print('ExtractGridData lat=%f, lon=%f, netcdf_dir. '%(lat, lon, netcdf_dir))
+  
   if netcdf_dir==None:
     netcdf_dir = os.path.join(config.target_root,'netcdf_final')
     
@@ -142,16 +184,50 @@ def ExtractPETForecastData(lat, lon, netcdf_dir=None, withPET=True):
       cvar = config.variable_names[fileLabel]
       xa = ExtractTimeSeries(filePath, cvar, lat, lon)
       xa.name=config.standard_names[fileLabel] 
+      try:
+        xa.attrs['height']=float(xa.height.values)
+        xa = xa.reset_coords(names='height',drop=True)
+      except:
+        pass
       xList.append(xa)
-    
+   
   xd = xr.merge(xList)
   xd['air_temperature'].data = xd['air_temperature'].data-273.15
-  xd['air_temperature'].attrs['units']='C'  
+  xd['air_temperature'].attrs['units']='degC'  
   xd['time'].attrs['time_zone']='UTC'
   
+  return xd
+
+def ExtractPETForecastData(lat, lon, height, netcdf_dir=None, withPET=True):
+  """
+  Extract time-series from standard netcdf files, and calculate Tmrt/PET/UTCI
+  
+  See ExtractGridData for lat/lon/netcdf inputs
+  
+  Height is used to convert mslp to station pressure for converting specific humidity to rh!
+  
+  withPET=True => no longer used. Always treated as true! 
+  
+  Returns xarray.Dataset with addittional fields from CalculatePET(xd)
+  
+  NOTE that the non-radiation fields are CHANGED to be the average of the values
+  at the timepoint and the previous value (and first is NaN). 
+  
+  Thus the PET/UTCI/Tmrt should be regarded as the average for
+  the time-interval PRECEEDING the timepoint (as with the radiation values).
+  
+  """
+  if config.debug:
+    print('ExtractPETForecastData lat=%f, lon=%f'%(lat, lon))
+
+  xd = ExtractGridData(lat, lon, netcdf_dir=netcdf_dir)
+  xd = xd.assign_coords({"station_height":float(height)})
+  
+  # take average of non-radiation variables.
+  xd = AverageAndOffset(xd)
+
   # now add PET and UTCI
-  if withPET:
-    CalculatePET(xd)
+  xd = CalculatePET(xd)
   
   return xd
   
@@ -213,7 +289,8 @@ def UpdateLocalForecast(Name=None, ID=None, stash=False, withPET=True):
   df = Stations().GetRow(ID=ID, Name=Name)
   
   for index, d in df.iterrows():
-    xd=ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'],withPET=withPET)
+    xd=ExtractPETForecastData(lat=d['Latitude'], lon=d['Longitude'], 
+                              height=d['Height (m)'], withPET=withPET)
     xd=xd.assign_coords(Name=d['Name']) 
     xd=xd.assign_coords(Id=d['Id']) 
 
