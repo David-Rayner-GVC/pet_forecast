@@ -120,9 +120,9 @@ def CalculatePET(xd):
   xd.wind_speed.data[0]=np.nan
   xd.wind_speed.attrs = {"standard_name":"wind_speed", "long_name":"10 metre wind speed", "units":"m s**-1" } 
 
-  xd['RH'] = (('time'), np.float32(RH) )
-  xd.RH.data[0]=np.nan
-  xd.RH.attrs = {"standard_name":"relative_humidity", "long_name":"Relative humidity", "units":"%" } 
+  xd['relative_humidity'] = (('time'), np.float32(RH) )
+  xd.relative_humidity.data[0]=np.nan
+  xd.relative_humidity.attrs = {"standard_name":"relative_humidity", "long_name":"Relative humidity", "units":"%" } 
 
   return xd
 
