@@ -17,6 +17,8 @@ import datetime
 from cdo import Cdo
 import xarray as xr
 import numpy as np
+from multiprocessing.pool import ThreadPool
+
 
 import config
 from generic_lib import *
@@ -28,14 +30,14 @@ except ImportError:
     DEVNULL = open(os.devnull, 'wb')
 
 
-def _ConvertGrib(source_file, target_dir):
+def _ConvertGrib(inputs):
   """
   Unzip/convert a single file
   
   source_file - path to .bz2 equiv file
   target_dir - path to where  .nc will be created
   """
-  
+  source_file, target_dir = inputs
   grib_source, ext  = os.path.splitext(source_file)
 
   if ext == '.bz2':
@@ -80,9 +82,14 @@ def _ConvertVar(source_dir, target_dir):
   if config.debug:
     print(source_dir + ' -> ' + target_dir)
   D = os.listdir(source_dir)
-  CG = lambda x : _ConvertGrib(os.path.join(source_dir,x) , target_dir)
-
-  ND = list(map(CG,D)) 
+  #CG = lambda x : _ConvertGrib(os.path.join(source_dir,x) , target_dir)
+  #ND = list(map(CG,D)) 
+  
+  ND = list(map(lambda x: (os.path.join(source_dir,x), target_dir),D))
+  results = ThreadPool(3).imap_unordered(_ConvertGrib, ND)
+  for r in results:
+    print(r)
+      
   return(ND)
   
 def _ConcatenateNetcdf(source_dir, target_dir):
