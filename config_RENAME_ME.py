@@ -36,12 +36,12 @@ tmp_dir = '/LOCALDATA/PET__forecast/icon-eu/tmp_'
 
 PET_vars = ('ASWDIFD_S', 'ASWDIR_S', 'QV_2m','PMSL','T_2M','U_10M','V_10M')
 
-variable_names = {'ASWDIFD_S':'ASWDIFD_S', 'ASWDIR_S':'ASWDIR_S', 'QV_2m':'QV_2m',
+variable_names = {'ASWDIFD_S':'ASWDIFD_S', 'ASWDIR_S':'ASWDIR_S', 'QV_2M':'QV_2M',
                   'PMSL':'prmsl','T_2M':'2t','U_10M':'10u','V_10M':'10v'}
 
 standard_names = {'ASWDIFD_S':'downward_diffuse', 
 'ASWDIR_S':'downward_direct',
-'QV_2m':'specific_humidity',
+'QV_2M':'specific_humidity',
 'PMSL':'mslp',
 'T_2M':'air_temperature',
 'U_10M':'eastward_wind',
