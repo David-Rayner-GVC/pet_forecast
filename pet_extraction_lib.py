@@ -127,6 +127,10 @@ def CalculatePET(xd):
   xd.relative_humidity.data[0]=np.nan
   xd.relative_humidity.attrs = {"standard_name":"relative_humidity", "long_name":"Relative humidity", "units":"%" } 
 
+  xd['longwave_down'] = (('time'), np.float32(poi_save[:, 16]) )
+  xd.longwave_down.data[0]=np.nan
+  xd.longwave_down.attrs = {"standard_name":"longwave_down", "long_name":"Longwave down from SOLWEIG1d_2020a", "units":"W m-2" } 
+
   return xd
 
 def ExtractTimeSeries(filename, cvar, lat, lon):
