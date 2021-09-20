@@ -15,6 +15,7 @@ from urllib.parse import urljoin
 import re
 import datetime
 import wget
+from multiprocessing.pool import ThreadPool
 
 import config
 from generic_lib import *
@@ -52,12 +53,24 @@ class icon_url_lib:
     file_list=self.GetFileNames(hh,cvar.lower())
     CheckDirExists(grib_dir)
     
-    for f in file_list:
-      u = urljoin(self.url_root , hh + '/' + cvar.lower() + '/' + f)
-      target_file = os.path.join(grib_dir,f)
+    def DownloadFile(entry):
+      u,target_file = entry   # extract params
       wget.download(u, target_file)
       if config.debug:
         print('download %s' % u)
+    
+    entry_list = []
+    for f in file_list:
+      u = urljoin(self.url_root , hh + '/' + cvar.lower() + '/' + f)
+      target_file = os.path.join(grib_dir,f)
+      entry_list.append([u,target_file])
+    
+    results = ThreadPool(8).imap_unordered(DownloadFile, entry_list)
+    for path in results:
+      print(path)
+
+    #for entry in entry_list:
+    #  DownloadFile(entry)
 
   def GetFirstDate(self, hh):
     """
