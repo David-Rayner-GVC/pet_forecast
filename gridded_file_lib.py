@@ -59,7 +59,6 @@ def _ConvertGrib(inputs):
   nc_source = nc_source + '.nc'
   
   if ext == '.grib2':
-    CheckDirExists(target_dir)
     full_nc_source = os.path.join(target_dir, nc_source)
 
     el = 'cdo -O -f nc setgridtype,regular %s %s ' % (grib_source, full_nc_source)
@@ -81,6 +80,7 @@ def _ConvertVar(source_dir, target_dir):
   """
   if config.debug:
     print(source_dir + ' -> ' + target_dir)
+  CheckDirExists(target_dir)
   D = os.listdir(source_dir)
   #CG = lambda x : _ConvertGrib(os.path.join(source_dir,x) , target_dir)
   #ND = list(map(CG,D)) 
