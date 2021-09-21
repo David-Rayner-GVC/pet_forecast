@@ -28,7 +28,7 @@ local times for long runs:
 local times for short runs:
 2,8,14,20
 
-I guess this will break if we go back to winter time...
+(As these are local time, the UTC+ varies with day-light savings)
 
-  - If you have a dev setup, you can stop the git updates as you create merge conflicts on the production setup. 
+
 
