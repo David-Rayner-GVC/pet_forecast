@@ -14,6 +14,7 @@ import numpy as np
 import base64
 import requests
 import datetime
+from pathlib import Path
 
 from Stations import Stations
 
@@ -78,4 +79,21 @@ def UpdatePublisehedForecasts():
   r.index.commit("Forecast updated: " + timeStr)
   r.remote('origin').push(force=True)
   
-
+def UpdateInfo(xr=None):
+  """
+  Update the info file in the local repository at:
+    config.git_local_root / info.txt
+    
+  Call UpdatePublisehedForecasts after to push it out.   
+  
+  The update uses either the provided xr, or retrieves the
+  first one from Stations.
+  """
+  if xr==None:
+    st=Stations()
+    ID = st.stations.Id[0]
+    xr = RetrieveForecast(ID=ID)
+  fname = Path(config.git_local_root) / 'info.txt'
+  with open(fname,'w') as file: 
+    xr.info(file)
+    
