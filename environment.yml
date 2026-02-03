@@ -1,0 +1,19 @@
+name: geopython2023
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - requests
+  - pandas
+  - geopandas
+  - pip
+  - pprintpp
+  - extruct
+  - openpyxl
+  - ipython
+  - matplotlib
+  - rasterio
+  - fiona
+  
+  
+  
